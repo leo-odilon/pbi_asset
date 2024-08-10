@@ -1,0 +1,27 @@
+# version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+
+  hive:
+    image: apache/hive:4.0.0
+    container_name: $container_name  # Se estiver usando uma variável de ambiente
+    ports:
+      - '10000:10000'
+      - '10002:10002'
+    environment:
+      - SERVICE_NAME=hiveserver2
+    volumes:
+      - ./database/parquet:/data/parquet
+      - ./database/query/tables:/data/tables
+    command: /bin/sh -c "beeline -u jdbc:hive2://localhost:10000 -f /data/tables/hive.sql"
