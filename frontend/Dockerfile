@@ -11,6 +11,7 @@ COPY package*.json ./
 RUN npm install
 
 # Copia o restante dos arquivos do projeto
+COPY ./public ./public
 COPY ./src ./src
 
 # Expõe a porta que o React usa
