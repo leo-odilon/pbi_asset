@@ -12,23 +12,77 @@ services:
   #     - /app/node_modules
   #   environment:
   #     - NODE_ENV=development
-  frontend:
-    image: leodilon/pbi_asset_frontend:1.1
-    ports:
-      - '3000:3000'
-    environment:
-      - NODE_ENV=development
-      - BROWSER=none
+
+  # frontend:
+  #   image: leodilon/pbi_asset_frontend:1.7
+  #   container_name: frontend
+  #   ports:
+  #     - '3000:3000'
+  #   environment:
+  #     - NODE_ENV=development
+  #     - BROWSER=none
 
   hive:
     image: apache/hive:4.0.0
-    container_name: $container_name  # Se estiver usando uma variável de ambiente
+    container_name: hive
     ports:
       - '10000:10000'
       - '10002:10002'
     environment:
       - SERVICE_NAME=hiveserver2
+      - DOCKER_DEFAULT_PLATFORM=linux/arm64
     volumes:
       - ./database/parquet:/data/parquet
       - ./database/query/tables:/data/tables
-    command: /bin/sh -c "beeline -u jdbc:hive2://localhost:10000 -f /data/tables/hive.sql"
+    # command: /bin/sh -c "beeline -u jdbc:hive2://localhost:10000 -f /data/tables/hive.sql"
+
+  # hive-metastore:
+  #   image: apache/hive:4.0.0
+  #   container_name: hive-metastore
+  #   ports:
+  #     - '9083:9083'
+  #   environment:
+  #     - SERVICE_NAME=hivemetastore
+  #     - HIVE_CONF_DIR=/opt/hive/conf
+  #   volumes:
+  #     - ./database/metastore:/opt/hive/metastore
+  #   command: /bin/sh -c "hive --service metastore"
+  #   # Adicionando a flag --hiveconf para especificar o diretório do metastore
+      
+
+  # hive-server2:
+  #   image: apache/hive:4.0.0
+  #   container_name: hive-server2
+  #   ports:
+  #     - '10000:10000'
+  #   environment:
+  #     - SERVICE_NAME=hiveserver2
+  #     - HIVE_METASTORE_URI=thrift://hive-metastore:9083
+  #   depends_on:
+  #     - hive-metastore
+  #   volumes:
+  #     - ./database/parquet:/data/parquet
+  #     - ./database/query/tables:/data/tables
+  #   command: /bin/sh -c "while ! nc -z hive-metastore 9083; do sleep 1; done && hive --service hiveserver2"
+
+
+  # sqlite:
+  #   image: alpine:latest
+  #   container_name: sqlite_container
+  #   command: sh -c "apk --no-cache add sqlite && cp /data/initial-db.sqlite /data/db.sqlite && sqlite3 /data/db.sqlite < /data/init.sql && tail -f /dev/null"
+  #   volumes:
+  #     - ./database/sqlite/data:/data
+  #   # working_dir: /data  # Define o diretório de trabalho no contêiner
+
+  # superset:
+  #   image: apache/superset:master
+  #   environment: 
+  #     - DOCKER_DEFAULT_PLATFORM=linux/arm64
+  #     - SUPERSET_CONFIG_PATH=/conf/superset_config.py
+  #     # - FLASK_APP=superset
+  #     - SUPERSET_SECRET_KEY=leonado1234567890
+  #     - SQLALCHEMY_DATABASE_URI = 'hive://hive@localhost:10000/default'
+  #   volumes:
+  #     - ./superset/conf:/conf
+  #     # - ./database/sqlite/data:/sqlite/data
+

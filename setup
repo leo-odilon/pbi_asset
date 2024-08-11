@@ -1,0 +1,16 @@
+podman build -t docker.io/leodilon/pbi_asset_frontend:1.6 . --platform linux/amd64,linux/arm64
+
+
+podman build -t docker.io/leodilon/pbi_asset_db_sqlite:1.0 . --platform linux/amd64,linux/arm64
+podman run -d --name=sqlite3 -v ./sqlite_data:/data docker.io/leodilon/pbi_asset_db_sqlite:1.0
+
+podman compose -f docker-compose.yml up -d --force-recreate
+
+
+podman run -d \
+  --name hive4 \
+  -p 10000:10000 -p 10002:10002 \
+  --env SERVICE_NAME=hiveserver2 \
+  -v ./database/parquet:/data/parquet \
+  -v ./database/query/tables:/data/tables \
+  apache/hive:4.0.0 
